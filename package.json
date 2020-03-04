@@ -1,0 +1,25 @@
+{
+  "name": "regon",
+  "version": "1.0.0",
+  "description": "Node interface for REGON API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mustaf115/regon.git"
+  },
+  "keywords": [
+    "regon",
+    "nip",
+    "krs",
+    "gus"
+  ],
+  "author": "Mustafa Ucuncu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mustaf115/regon/issues"
+  },
+  "homepage": "https://github.com/mustaf115/regon#readme"
+}
