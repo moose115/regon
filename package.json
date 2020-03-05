@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/mustaf115/regon/issues"
   },
-  "homepage": "https://github.com/mustaf115/regon#readme"
+  "homepage": "https://github.com/mustaf115/regon#readme",
+  "devDependencies": {
+    "typescript": "^3.8.3"
+  }
 }
