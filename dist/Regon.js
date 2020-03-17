@@ -124,7 +124,7 @@ var Regon = /** @class */ (function () {
                             .DaneSzukajPodmiotyAsync({ pParametryWyszukiwania: params })
                             .then(function (res) { return xml2js_1.parseStringPromise(res[0].DaneSzukajPodmiotyResult); })
                             .then(function (res) { return res.root && res.root.dane[0] && res.root.dane[0]; })
-                            .then(function (error) { return console.log(error); });
+                            .catch(function (error) { return console.log(error); });
                         return [4 /*yield*/, this.logout(sid)];
                     case 3:
                         _a.sent();
