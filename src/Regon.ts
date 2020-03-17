@@ -69,7 +69,8 @@ export class Regon {
       const data = regon
         .DaneSzukajPodmiotyAsync({ pParametryWyszukiwania: params })
         .then( (res: any) => parseStringPromise(res[0].DaneSzukajPodmiotyResult))
-        .then( (res: any) => res.root.dane[0] );
+        .then( (res: any) => res.root && res.root.dane[0] && res.root.dane[0])
+        .then( (error: any) => console.log(error) );
       await this.logout(sid);
       return data;
     } catch (error) {
