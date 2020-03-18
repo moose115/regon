@@ -1,92 +1,52 @@
-import { SERVICE_TEST, SERVICE, WSDL_TEST, WSDL, ACTION, ACTION_ZALOGUJ, ACTION_SZUKAJ_PODMIOTY, ACTION_WYLOGUJ } from './constants';
-import * as soap from 'soap';
+import fetch from 'node-fetch';
+import { ParametryWyszukiwania } from './interfaces';
+import { envelopeZaloguj, envelopeDaneSzukajPodmioty, envelopeWyloguj } from './envelopes';
+import { SERVICE_TEST, SERVICE, WSDL_TEST, WSDL } from './constants';
 import { parseStringPromise } from 'xml2js';
-
-interface ParametryWyszukiwania {
-  Krs?: string,
-  Krsy?: string[],
-  Nip?: string,
-  Nipy?: string[],
-  Regon?: string,
-  Regony14zn?: string[],
-  Regony9zn?: string[]
-}
 
 export class Regon {
   private _key: string
   private _service: string
   private _wsdl: string
-  private _soapRegonPromise: Promise<soap.Client>
   
   constructor({ key = '', dev = false } = {}) {
     this._key = dev ? 'abcde12345abcde12345' : key;
     this._service = dev ? SERVICE_TEST : SERVICE;
     this._wsdl = dev ? WSDL_TEST : WSDL;
-    this._soapRegonPromise = this.createRegon();
   }
 
-  createRegon(): Promise<soap.Client> {
-    return soap
-      .createClientAsync(this._wsdl, { forceSoap12Headers: true })
-      .then( (regon: soap.Client) => {
-        regon.addHttpHeader('Content-Type', 'application/soap+xml; charset=utf-8');
-        return regon;
-      });
+  login(): Promise<any> {
+    return this.sendEnvelope(envelopeZaloguj(this._key)).then( res => res.ZalogujResponse.ZalogujResult[0] );
+  }
+
+  logout(sid: string): Promise<any> {
+    return this.sendEnvelope(envelopeWyloguj(sid)).then( res => res.WylogujResponse.WylogujResult[0] === 'true' );
+  }
+
+  sendEnvelope(envelope: string, sid: string = ''): Promise<any> {    
+    return fetch(this._service, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/soap+xml; charset=utf-8',
+        sid,
+      },
+      body: envelope
+    })
+      .then( res => res.text() )
+      .then( res => res.replace(/\n/g, '').match(/<s:Body>(.*?)<\/s:Body>/)[1])
+      .then( res => parseStringPromise(res) )
+      .catch( (error: any) => console.log(error));
   }
     
-  async login(): Promise<any> {
+  async getCompanyData(params: ParametryWyszukiwania): Promise<any> {
     try {
-      const regon = await this._soapRegonPromise;
-      this.addAction(regon, ACTION_ZALOGUJ);
-      const sid = regon
-        .ZalogujAsync({ pKluczUzytkownika: this._key })
-        .then( (res: any) => res[0].ZalogujResult );
-      return sid;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async logout(sid: string): Promise<any> {
-    try {
-      const regon = await this._soapRegonPromise;
-      this.addAction(regon, ACTION_WYLOGUJ);
-      const hasLoggedOut = await regon
-        .WylogujAsync({ pIdentyfikatorSesji: sid })
-        .then( (res: any) => res[0].WylogujResult );
-      return hasLoggedOut;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getCompanyData(params: ParametryWyszukiwania) {
-    try {
-      const regon = await this._soapRegonPromise;
       const sid = await this.login();
-      regon.addHttpHeader('sid', sid);
-      this.addAction(regon, ACTION_SZUKAJ_PODMIOTY);
-      const data = regon
-        .DaneSzukajPodmiotyAsync({ pParametryWyszukiwania: params })
-        .then( (res: any) => parseStringPromise(res[0].DaneSzukajPodmiotyResult))
-        .then( (res: any) => res.root && res.root.dane[0] && res.root.dane[0])
-        .catch( (error: any) => console.log(error) );
+      const data = await this.sendEnvelope(envelopeDaneSzukajPodmioty(params), sid)
+        .then( res => parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult));
       await this.logout(sid);
-      return data;
+      return data.root.dane[0];
     } catch (error) {
-      console.log(error);
+      return error.body;
     }
-  }
-
-  private addAction(regon: soap.Client, action: string): void {
-    regon.clearSoapHeaders();
-    regon.addSoapHeader({
-      To: this._service,
-      Action: ACTION + action
-    },
-    '',
-    'wsa',
-    'http://www.w3.org/2005/08/addressing'
-    );
-  }
+  }  
 }

@@ -36,8 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var node_fetch_1 = require("node-fetch");
+var envelopes_1 = require("./envelopes");
 var constants_1 = require("./constants");
-var soap = require("soap");
 var xml2js_1 = require("xml2js");
 var Regon = /** @class */ (function () {
     function Regon(_a) {
@@ -45,105 +46,53 @@ var Regon = /** @class */ (function () {
         this._key = dev ? 'abcde12345abcde12345' : key;
         this._service = dev ? constants_1.SERVICE_TEST : constants_1.SERVICE;
         this._wsdl = dev ? constants_1.WSDL_TEST : constants_1.WSDL;
-        this._soapRegonPromise = this.createRegon();
     }
-    Regon.prototype.createRegon = function () {
-        return soap
-            .createClientAsync(this._wsdl, { forceSoap12Headers: true })
-            .then(function (regon) {
-            regon.addHttpHeader('Content-Type', 'application/soap+xml; charset=utf-8');
-            return regon;
-        });
-    };
     Regon.prototype.login = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var regon, sid, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this._soapRegonPromise];
-                    case 1:
-                        regon = _a.sent();
-                        this.addAction(regon, constants_1.ACTION_ZALOGUJ);
-                        sid = regon
-                            .ZalogujAsync({ pKluczUzytkownika: this._key })
-                            .then(function (res) { return res[0].ZalogujResult; });
-                        return [2 /*return*/, sid];
-                    case 2:
-                        error_1 = _a.sent();
-                        console.log(error_1);
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
-                }
-            });
-        });
+        return this.sendEnvelope(envelopes_1.envelopeZaloguj(this._key)).then(function (res) { return res.ZalogujResponse.ZalogujResult[0]; });
     };
     Regon.prototype.logout = function (sid) {
-        return __awaiter(this, void 0, void 0, function () {
-            var regon, hasLoggedOut, error_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, this._soapRegonPromise];
-                    case 1:
-                        regon = _a.sent();
-                        this.addAction(regon, constants_1.ACTION_WYLOGUJ);
-                        return [4 /*yield*/, regon
-                                .WylogujAsync({ pIdentyfikatorSesji: sid })
-                                .then(function (res) { return res[0].WylogujResult; })];
-                    case 2:
-                        hasLoggedOut = _a.sent();
-                        return [2 /*return*/, hasLoggedOut];
-                    case 3:
-                        error_2 = _a.sent();
-                        console.log(error_2);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
+        return this.sendEnvelope(envelopes_1.envelopeWyloguj(sid)).then(function (res) { return res.WylogujResponse.WylogujResult[0] === 'true'; });
+    };
+    Regon.prototype.sendEnvelope = function (envelope, sid) {
+        if (sid === void 0) { sid = ''; }
+        return node_fetch_1.default(this._service, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/soap+xml; charset=utf-8',
+                sid: sid,
+            },
+            body: envelope
+        })
+            .then(function (res) { return res.text(); })
+            .then(function (res) { return res.replace(/\n/g, '').match(/<s:Body>(.*?)<\/s:Body>/)[1]; })
+            .then(function (res) { return xml2js_1.parseStringPromise(res); })
+            .catch(function (error) { return console.log(error); });
     };
     Regon.prototype.getCompanyData = function (params) {
         return __awaiter(this, void 0, void 0, function () {
-            var regon, sid, data, error_3;
+            var sid, data, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 4, , 5]);
-                        return [4 /*yield*/, this._soapRegonPromise];
-                    case 1:
-                        regon = _a.sent();
                         return [4 /*yield*/, this.login()];
-                    case 2:
+                    case 1:
                         sid = _a.sent();
-                        regon.addHttpHeader('sid', sid);
-                        this.addAction(regon, constants_1.ACTION_SZUKAJ_PODMIOTY);
-                        data = regon
-                            .DaneSzukajPodmiotyAsync({ pParametryWyszukiwania: params })
-                            .then(function (res) { return xml2js_1.parseStringPromise(res[0].DaneSzukajPodmiotyResult); })
-                            .then(function (res) { return res.root && res.root.dane[0] && res.root.dane[0]; })
-                            .catch(function (error) { return console.log(error); });
+                        return [4 /*yield*/, this.sendEnvelope(envelopes_1.envelopeDaneSzukajPodmioty(params), sid)
+                                .then(function (res) { return xml2js_1.parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult); })];
+                    case 2:
+                        data = _a.sent();
                         return [4 /*yield*/, this.logout(sid)];
                     case 3:
                         _a.sent();
-                        return [2 /*return*/, data];
+                        return [2 /*return*/, data.root.dane[0]];
                     case 4:
-                        error_3 = _a.sent();
-                        console.log(error_3);
-                        return [3 /*break*/, 5];
+                        error_1 = _a.sent();
+                        return [2 /*return*/, error_1.body];
                     case 5: return [2 /*return*/];
                 }
             });
         });
-    };
-    Regon.prototype.addAction = function (regon, action) {
-        regon.clearSoapHeaders();
-        regon.addSoapHeader({
-            To: this._service,
-            Action: constants_1.ACTION + action
-        }, '', 'wsa', 'http://www.w3.org/2005/08/addressing');
     };
     return Regon;
 }());
