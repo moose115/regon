@@ -48,7 +48,11 @@ var Regon = /** @class */ (function () {
         this._wsdl = dev ? constants_1.WSDL_TEST : constants_1.WSDL;
     }
     Regon.prototype.login = function () {
-        return this.sendEnvelope(envelopes_1.envelopeZaloguj(this._key)).then(function (res) { return res.ZalogujResponse.ZalogujResult[0]; });
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.sendEnvelope(envelopes_1.envelopeZaloguj(this._key)).then(function (res) { return res.ZalogujResponse.ZalogujResult[0]; })];
+            });
+        });
     };
     Regon.prototype.logout = function (sid) {
         return this.sendEnvelope(envelopes_1.envelopeWyloguj(sid)).then(function (res) { return res.WylogujResponse.WylogujResult[0] === 'true'; });
@@ -59,7 +63,7 @@ var Regon = /** @class */ (function () {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/soap+xml; charset=utf-8',
-                sid: sid,
+                'sid': sid,
             },
             body: envelope
         })
@@ -74,22 +78,21 @@ var Regon = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 4, , 5]);
+                        _a.trys.push([0, 3, , 4]);
                         return [4 /*yield*/, this.login()];
                     case 1:
                         sid = _a.sent();
+                        console.log('Get comp, sid: ', sid);
                         return [4 /*yield*/, this.sendEnvelope(envelopes_1.envelopeDaneSzukajPodmioty(params), sid)
                                 .then(function (res) { return xml2js_1.parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult); })];
                     case 2:
                         data = _a.sent();
-                        return [4 /*yield*/, this.logout(sid)];
-                    case 3:
-                        _a.sent();
+                        this.logout(sid);
                         return [2 /*return*/, data.root.dane[0]];
-                    case 4:
+                    case 3:
                         error_1 = _a.sent();
                         return [2 /*return*/, error_1.body];
-                    case 5: return [2 /*return*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         });

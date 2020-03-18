@@ -37,13 +37,13 @@ export const envelopeDaneSzukajPodmioty = (params: ParametryWyszukiwania): strin
     <soap:Body>
         <ns:DaneSzukajPodmioty>
             <ns:pParametryWyszukiwania>
-                <dat:Regon>${params.Regon || ''}</dat:Regon>
-                <dat:Nip>${params.Nip || ''}</dat:Nip>
-                <dat:Krs>${params.Krs || ''}</dat:Krs>
-                <dat:Nipy>${params.Nipy || ''}</dat:Nipy>
-                <dat:Regony9zn>${params.Regony9zn || ''}</dat:Regony9zn>
-                <dat:Krsy>${params.Krsy || ''}</dat:Krsy>
-                <dat:Regony14zn>${params.Regony14zn || ''}</dat:Regony14zn>
+                ${ params.Regon ? `<dat:Regon>${params.Regon}</dat:Regon>` : '' }
+                ${ params.Nip ? `<dat:Nip>${params.Nip}</dat:Nip>` : '' }
+                ${ params.Krs ? `<dat:Krs>${params.Krs}</dat:Krs>` : '' }
+                ${ params.Nipy ? `<dat:Nipy>${params.Nipy.join(',')}</dat:Nipy>` : '' }
+                ${ params.Regony9zn ? `<dat:Regony9zn>${params.Regony9zn.join(',')}</dat:Regony9zn>` : '' }
+                ${ params.Krsy ? `<dat:Krsy>${params.Krsy}</dat:Krsy>` : '' }
+                ${ params.Regony14zn ? `<dat:Regony14zn>${params.Regony14zn}</dat:Regony14zn>` : '' }
             </ns:pParametryWyszukiwania>
         </ns:DaneSzukajPodmioty>
     </soap:Body>

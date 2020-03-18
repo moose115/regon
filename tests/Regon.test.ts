@@ -1,4 +1,4 @@
-import { Regon } from '../src/Regon';
+import { Regon } from './../src/Regon';
 
 test('Should return login ID', async () => {
   const regon = new Regon({ dev: true });

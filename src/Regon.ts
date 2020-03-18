@@ -15,7 +15,7 @@ export class Regon {
     this._wsdl = dev ? WSDL_TEST : WSDL;
   }
 
-  login(): Promise<any> {
+  async login(): Promise<any> {
     return this.sendEnvelope(envelopeZaloguj(this._key)).then( res => res.ZalogujResponse.ZalogujResult[0] );
   }
 
@@ -23,12 +23,12 @@ export class Regon {
     return this.sendEnvelope(envelopeWyloguj(sid)).then( res => res.WylogujResponse.WylogujResult[0] === 'true' );
   }
 
-  sendEnvelope(envelope: string, sid: string = ''): Promise<any> {    
+  sendEnvelope(envelope: string, sid: string = ''): Promise<any> {
     return fetch(this._service, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/soap+xml; charset=utf-8',
-        sid,
+        'sid': sid,
       },
       body: envelope
     })
@@ -41,9 +41,10 @@ export class Regon {
   async getCompanyData(params: ParametryWyszukiwania): Promise<any> {
     try {
       const sid = await this.login();
+      console.log('Get comp, sid: ', sid);
       const data = await this.sendEnvelope(envelopeDaneSzukajPodmioty(params), sid)
         .then( res => parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult));
-      await this.logout(sid);
+      this.logout(sid);
       return data.root.dane[0];
     } catch (error) {
       return error.body;
