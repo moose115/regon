@@ -7,3 +7,7 @@ export interface ParametryWyszukiwania {
     Regony14zn?: string[];
     Regony9zn?: string[];
 }
+export interface ParametryPelnyRaport {
+    Regon: string;
+    NazwaRaportu: string;
+}

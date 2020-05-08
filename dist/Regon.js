@@ -63,9 +63,9 @@ var Regon = /** @class */ (function () {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/soap+xml; charset=utf-8',
-                'sid': sid,
+                sid: sid,
             },
-            body: envelope
+            body: envelope,
         })
             .then(function (res) { return res.text(); })
             .then(function (res) { return res.replace(/\n/g, '').match(/<s:Body>(.*?)<\/s:Body>/)[1]; })
@@ -83,8 +83,9 @@ var Regon = /** @class */ (function () {
                     case 1:
                         sid = _a.sent();
                         console.log('Get comp, sid: ', sid);
-                        return [4 /*yield*/, this.sendEnvelope(envelopes_1.envelopeDaneSzukajPodmioty(params), sid)
-                                .then(function (res) { return xml2js_1.parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult); })];
+                        return [4 /*yield*/, this.sendEnvelope(envelopes_1.envelopeDaneSzukajPodmioty(params), sid).then(function (res) {
+                                return xml2js_1.parseStringPromise(res.DaneSzukajPodmiotyResponse.DaneSzukajPodmiotyResult);
+                            })];
                     case 2:
                         data = _a.sent();
                         this.logout(sid);
@@ -92,6 +93,32 @@ var Regon = /** @class */ (function () {
                     case 3:
                         error_1 = _a.sent();
                         return [2 /*return*/, error_1.body];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Regon.prototype.getFullCompanyReport = function (params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var sid, data, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, this.login()];
+                    case 1:
+                        sid = _a.sent();
+                        console.log('Get comp, sid: ', sid);
+                        return [4 /*yield*/, this.sendEnvelope(envelopes_1.envelopeDanePobierzPelnyRaport(params), sid).then(function (res) {
+                                return xml2js_1.parseStringPromise(res.DanePobierzPelnyRaportResponse.DanePobierzPelnyRaportResult);
+                            })];
+                    case 2:
+                        data = _a.sent();
+                        this.logout(sid);
+                        return [2 /*return*/, data.root.dane[0]];
+                    case 3:
+                        error_2 = _a.sent();
+                        return [2 /*return*/, error_2.body];
                     case 4: return [2 /*return*/];
                 }
             });

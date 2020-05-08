@@ -1,4 +1,4 @@
-import { ParametryWyszukiwania } from './interfaces';
+import { ParametryWyszukiwania, ParametryPelnyRaport } from './interfaces';
 export declare class Regon {
     private _key;
     private _service;
@@ -11,4 +11,5 @@ export declare class Regon {
     logout(sid: string): Promise<any>;
     sendEnvelope(envelope: string, sid?: string): Promise<any>;
     getCompanyData(params: ParametryWyszukiwania): Promise<any>;
+    getFullCompanyReport(params: ParametryPelnyRaport): Promise<any>;
 }

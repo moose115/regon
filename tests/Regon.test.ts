@@ -19,3 +19,13 @@ test('Should return company data', async () => {
   const data = await regon.getCompanyData({ Regon: '000331501' });
   expect(data).toBeDefined();
 });
+
+test('Should return full report company data', async () => {
+  const regon = new Regon({ dev: true });
+  const data = await regon.getFullCompanyReport({
+    Regon: '000331501',
+    NazwaRaportu: 'BIR11OsFizycznaDaneOgolne',
+  });
+  expect(data).toBeDefined();
+});
+
